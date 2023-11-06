@@ -14,19 +14,24 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 @RequestMapping("/api/order")
 @RequiredArgsConstructor
-@CircuitBreaker(name = "inventory", fallbackMethod = "fallbackMethod")
 
 public class OrderController {
 
     private final OrderService orderService;
 
     @PostMapping
+    @CircuitBreaker(name = "inventory", fallbackMethod = "fallbackMethod")
     @ResponseStatus(HttpStatus.CREATED)
     @TimeLimiter(name = "inventory")
     @Retry(name = "inventory")
+
     public CompletableFuture<String> placeOrder(@RequestBody OrderRequest orderRequest) {
         return CompletableFuture.supplyAsync(()->orderService.placeOrder(orderRequest));
     }
+
+//    public String placeOrder(@RequestBody OrderRequest orderRequest) {
+//        return orderService.placeOrder(orderRequest);
+//    }
     public CompletableFuture<String> fallbackMethod( OrderRequest orderRequest, RuntimeException runtimeException){
 
         return CompletableFuture.supplyAsync(()->"Oops somthing wont worng! Please retry after some time");
